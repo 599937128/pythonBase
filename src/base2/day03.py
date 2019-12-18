@@ -1,3 +1,4 @@
+# 列表有序可重复
 names = ["lv", "liao"]
 
 # 在后面进行拼接
@@ -47,3 +48,14 @@ print(names)
 # names.sort()  使用排序必须保证元素类型相同
 # names.sort(reverse=True)  降序排序
 print(names)
+names2 = ["lv", "liao", "lu", "yan"]
+# 第一种迭代方式 显示序号
+j = 0
+print("序号\t姓名")
+for i in names2:
+    j += 1
+    print("%d\t%s" % (j, i))
+print("="*30)
+# 第二种方式 枚举方式 enumerate() 内置函数
+for i,item in enumerate(names2, 1):   # 从1开始计数
+    print("%d\t%s" % (i, item))
