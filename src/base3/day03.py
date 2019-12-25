@@ -1,7 +1,7 @@
 # 带返回值的函数
 def sum_2num(a, b):
-    sum = a + b;
-    return sum;
+    sum = a + b
+    return sum
 
 
 num1 = 2
