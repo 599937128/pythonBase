@@ -17,11 +17,13 @@ def search_student(name):
         if item["name"] == name.strip():
             print("%s 学生存在" % name)
             print_student(item)
-        break
+        return item
     else:  # 这个是循环执行完成之后没有找到才进行提示，要是找到了就不执行了 这就是python的经典之处
         print("学生%s没有找到" % name)
 
-
+def del_student(name):
+    student = search_student(name)
+    stus.remove(student)
 def print_student(item):
     print("序号\t名字\t年龄\tqq")
     print("%s\t%s\t%s\t" % (item["name"], item["age"], item["qq"]))
@@ -56,7 +58,8 @@ def main():
         if operator == "3":
             pass
         if operator == "4":
-            pass
+            name = input("请输入你要删除学生的姓名:")
+            del_student(name)
         if operator == "5":
             print_student_all()
         if operator == "6":
