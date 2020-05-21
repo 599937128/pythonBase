@@ -1,5 +1,5 @@
 class Person:
-    def __init__(self, name, age, height):  # 有参构造函数
+    def __init__(self, name, age, height):  # 有参构造函数 初始化对象的方法
         self.name = name
         self.age = age
         self.height = height
