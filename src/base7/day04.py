@@ -26,6 +26,11 @@ class Cat(Animal):
         print("=======抓老鼠=======")
 
 
+class ZangAo(Dog):
+    def fight(self):
+        print("=========战斗========")
+
+
 dog = Dog('小白')
 dog.eat()
 dog.shout()
@@ -34,3 +39,7 @@ cat = Cat()
 print(cat.name)
 cat.eat()
 cat.catch()
+
+zangAo = ZangAo("藏獒")
+zangAo.eat()
+zangAo.fight()
