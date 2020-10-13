@@ -1,2 +1,3 @@
-import random
-print(random.randint(0,5))
+import random as rm
+
+print(rm.randint(0, 5))  # 重新命名模块名称
