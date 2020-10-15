@@ -8,8 +8,8 @@ def isnull(str):
 
 
 def test():
-    print("mole1中的方法")
+    print('-----------------------测谁能打开')
 
 
 if __name__ == '__main__':  # 由python解释器主动执行的代码 该代码为了测试
-    print(test())
+    test()
