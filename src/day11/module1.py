@@ -28,7 +28,7 @@ class TankeMain(object):
             screen.fill((0, 0, 0))
             # 显示左上角的文字
             for i, text in enumerate(self.write_text(), 0):  # 使用枚举
-                screen.blit(text, (0, 5+(15*i)))
+                screen.blit(text, (0, 5 + (15 * i)))
             # 获取事件
             self.get_event(TankeMain.my_tank)
             TankeMain.my_tank.display()  # 在屏幕上显示我方坦克
@@ -74,7 +74,9 @@ class TankeMain(object):
                 if event.key == K_ESCAPE:
                     self.stopGame()
                 if event.key == K_SPACE:
-                    TankeMain.my_tank_missle_list.append(my_tank.fire())
+                    m = my_tank.fire()
+                    m.good = True
+                    TankeMain.my_tank_missle_list.append(m)
             if event.type == KEYUP:
                 if event.key == K_LEFT or event.key == K_RIGHT or event.key == K_UP or event.key == K_DOWN:
                     my_tank.stop = True
@@ -226,6 +228,7 @@ class Missile(BaseItem):
         self.rect.left = tank.rect.left + (tank.width - self.width) / 2
         self.rect.top = tank.rect.top + (tank.height - self.height) / 2
         self.live = True  # 炮弹是否消灭了
+        self.good = True
 
     def move(self):
         if self.live:  # 如果炮弹存在
@@ -249,6 +252,40 @@ class Missile(BaseItem):
                     self.rect.bottom += self.speed
                 else:
                     self.live = False
+
+    # 炮弹击中坦克 第一种 我方坦克的炮弹击中敌方的坦克 第二种 敌方坦克的炮弹击中我方坦克
+    def hit_tank(self):
+        if self.good:
+            pass
+
+
+
+# 爆炸类
+class Explode(BaseItem):
+
+    def __init__(self, screen, rect):
+        super().__init__(screen)
+        self.live = True
+        self.images = [pygame.image.load("../images/blast1.gif"), \
+                       pygame.image.load("../images/blast2.gif"), \
+                       pygame.image.load("../images/blast3.gif"), \
+                       pygame.image.load("../images/blast4.gif"), \
+                       pygame.image.load("../images/blast5.gif"), \
+                       pygame.image.load("../images/blast6.gif"), \
+                       pygame.image.load("../images/blast7.gif")
+                       ]
+        self.step = 0
+        self.rect = rect  # 爆炸的位置就是炮弹碰到坦克的位置.构建的时候把坦克的rect传入进来
+
+    # display 这个方法是这整个系统中循环调用的,每隔0.05秒调用一次
+    def display(self):
+        if self.live:
+            if self.step == len(self.images):  # 最后一张图片爆炸以及显示了
+                self.live = False
+            else:
+                self.image = self.images[self.step]
+                self.screen.blit(self.image, self.rect)
+                self.step += 1
 
 
 if __name__ == '__main__':
