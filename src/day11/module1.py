@@ -9,7 +9,9 @@ class TankeMain(object):
     width = 1000
     height = 800
     my_tank_missle_list = []
-    enemy_list = []
+    # enemy_list = []
+    enemy_list = pygame.sprite.Group()  # 敌方坦克的组群
+    explode_list = []
     my_tank = None
 
     # 开始游戏的窗口
@@ -22,7 +24,7 @@ class TankeMain(object):
         pygame.display.set_caption('坦克大战')
         TankeMain.my_tank = My_Tank(screen)
         for i in range(1, 6):
-            TankeMain.enemy_list.append(Enemy_Tank(screen))
+            TankeMain.enemy_list.add(Enemy_Tank(screen))
         while True:
             # EGB color (0,100,200) 设置屏幕的背景色
             screen.fill((0, 0, 0))
@@ -41,9 +43,13 @@ class TankeMain(object):
             for m in TankeMain.my_tank_missle_list:
                 if m.live:
                     m.display()
+                    m.hit_tank()  # 打中敌方坦克
                     m.move()
                 else:
                     TankeMain.my_tank_missle_list.remove(m)
+            # 显示爆炸效果
+            for explode in TankeMain.explode_list:
+                explode.display()
             time.sleep(0.05)  # 每次休眠0.05秒跳到下一帧
             # 显示重置
             pygame.display.update()
@@ -256,8 +262,13 @@ class Missile(BaseItem):
     # 炮弹击中坦克 第一种 我方坦克的炮弹击中敌方的坦克 第二种 敌方坦克的炮弹击中我方坦克
     def hit_tank(self):
         if self.good:
-            pass
-
+            hit_list = pygame.sprite.spritecollide(self, TankeMain.enemy_list, False)
+            for e in hit_list:
+                e.live = False
+                self.live = False
+                TankeMain.enemy_list.remove(e)  # 敌方坦克被击中删除坦克
+                explode = Explode(self.screen, e.rect)
+                TankeMain.explode_list.append(explode)  # 产生爆炸对象
 
 
 # 爆炸类
