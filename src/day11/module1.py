@@ -13,6 +13,7 @@ class TankeMain(object):
     enemy_list = pygame.sprite.Group()  # 敌方坦克的组群
     explode_list = []
     my_tank = None
+    enemy_missile_list = pygame.sprite.Group()  # 敌方坦克炮弹
 
     # 开始游戏的窗口
     def startGame(self):
@@ -23,22 +24,33 @@ class TankeMain(object):
         # 给窗口设置一个标题
         pygame.display.set_caption('坦克大战')
         TankeMain.my_tank = My_Tank(screen)
-        for i in range(1, 6):
-            TankeMain.enemy_list.add(Enemy_Tank(screen))
+        if len(TankeMain.enemy_list):
+            for i in range(1, 6):
+                TankeMain.enemy_list.add(Enemy_Tank(screen))
+
         while True:
+            if len(TankeMain.enemy_list) < 5:
+                TankeMain.enemy_list.add(Enemy_Tank(screen))
             # EGB color (0,100,200) 设置屏幕的背景色
             screen.fill((0, 0, 0))
             # 显示左上角的文字
             for i, text in enumerate(self.write_text(), 0):  # 使用枚举
                 screen.blit(text, (0, 5 + (15 * i)))
             # 获取事件
-            self.get_event(TankeMain.my_tank)
-            TankeMain.my_tank.display()  # 在屏幕上显示我方坦克
-            TankeMain.my_tank.move()  # 坦克移动
+            self.get_event(TankeMain.my_tank, screen)
+            if TankeMain.my_tank:
+                TankeMain.my_tank.hit_enemy_missile()  # 我方坦克和敌方的炮弹进行碰撞检测
+            if TankeMain.my_tank and TankeMain.my_tank.live:
+                TankeMain.my_tank.display()  # 在屏幕上显示我方坦克
+                TankeMain.my_tank.move()  # 坦克移动
+            else:
+                print("GAME OVER")
+                TankeMain.my_tank = None
             # 创建敌方坦克
             for enemy in TankeMain.enemy_list:
                 enemy.display()
-                enemy.randmon_move()
+                enemy.random_move()
+                enemy.random_fire()
             # 显示我方坦克发射的炮弹
             for m in TankeMain.my_tank_missle_list:
                 if m.live:
@@ -47,6 +59,15 @@ class TankeMain(object):
                     m.move()
                 else:
                     TankeMain.my_tank_missle_list.remove(m)
+
+            # 显示敌方坦克发射的炮弹
+            for m in TankeMain.enemy_missile_list:
+                if m.live:
+                    m.display()
+                    m.move()
+                else:
+                    TankeMain.enemy_missile_list.remove(m)
+
             # 显示爆炸效果
             for explode in TankeMain.explode_list:
                 explode.display()
@@ -55,11 +76,13 @@ class TankeMain(object):
             pygame.display.update()
 
     # 获取所有的事件
-    def get_event(self, my_tank):
+    def get_event(self, my_tank, screen):
         for event in pygame.event.get():
             if event.type == QUIT:
                 self.stopGame()  # 程序退出
-            if event.type == KEYDOWN:
+            if event.type == KEYDOWN and (not my_tank) and event.key == K_n:
+                TankeMain.my_tank = My_Tank(screen)
+            if event.type == KEYDOWN and my_tank:
                 if event.key == K_LEFT or event.key == K_a:
                     my_tank.direction = 'L'
                     my_tank.stop = False
@@ -83,7 +106,7 @@ class TankeMain(object):
                     m = my_tank.fire()
                     m.good = True
                     TankeMain.my_tank_missle_list.append(m)
-            if event.type == KEYUP:
+            if event.type == KEYUP and my_tank:
                 if event.key == K_LEFT or event.key == K_RIGHT or event.key == K_UP or event.key == K_DOWN:
                     my_tank.stop = True
 
@@ -171,6 +194,16 @@ class My_Tank(Tank):
     def __init__(self, screen):
         super().__init__(screen, 250, 290)  # 创建一个我方坦克
         self.stop = Tank
+        self.live = True
+
+    def hit_enemy_missile(self):
+        hit_list = pygame.sprite.spritecollide(self, TankeMain.enemy_missile_list, False)
+        for m in hit_list:  # 我方坦克中弹
+            self.live = False
+            m.live = False
+            TankeMain.enemy_missile_list.remove(m)
+            explode = Explode(self.screen, self.rect)
+            TankeMain.explode_list.append(explode)
 
 
 # 敌方坦克
@@ -204,7 +237,7 @@ class Enemy_Tank(Tank):
             self.stop = False
 
     # 地方坦克 按照一个随即的方向 连续移动 6步 然后才能改变方向
-    def randmon_move(self):
+    def random_move(self):
         if self.live:
             if self.step == 0:
                 self.get_random_direction()
@@ -212,6 +245,12 @@ class Enemy_Tank(Tank):
             else:
                 self.move()
                 self.step -= 1
+
+    def random_fire(self):
+        r = randint(0, 50)
+        if r == 10 or r == 20 or r == 30:
+            m = self.fire()
+            TankeMain.enemy_missile_list.add(m)
 
 
 # 炮弹
