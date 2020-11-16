@@ -12,6 +12,7 @@ class TankeMain(object):
     # enemy_list = []
     enemy_list = pygame.sprite.Group()  # 敌方坦克的组群
     explode_list = []
+    Wall = None
     my_tank = None
     enemy_missile_list = pygame.sprite.Group()  # 敌方坦克炮弹
 
@@ -23,6 +24,7 @@ class TankeMain(object):
         screen = pygame.display.set_mode((TankeMain.width, TankeMain.height), 0, 32)
         # 给窗口设置一个标题
         pygame.display.set_caption('坦克大战')
+        TankeMain.Wall = Wall(screen, 65, 160, 30, 100)
         TankeMain.my_tank = My_Tank(screen)
         if len(TankeMain.enemy_list):
             for i in range(1, 6):
@@ -36,6 +38,9 @@ class TankeMain(object):
             # 显示左上角的文字
             for i, text in enumerate(self.write_text(), 0):  # 使用枚举
                 screen.blit(text, (0, 5 + (15 * i)))
+            # 显示墙, 并且对墙和其他的做碰撞检测
+            TankeMain.Wall.display()
+            TankeMain.Wall.hit_other()
             # 获取事件
             self.get_event(TankeMain.my_tank, screen)
             if TankeMain.my_tank:
@@ -160,9 +165,17 @@ class Tank(BaseItem):
         self.rect.top = top
         self.rect.bottom = top
         self.live = True  # 决定坦克是否被消灭了
+        self.oldtop = self.rect.top
+        self.oldleft = self.rect.left
+
+    def stay(self):
+        self.rect.top = self.oldtop
+        self.rect.left = self.oldleft
 
     def move(self):
         if not self.stop:  # 如果坦克不是停止状态
+            self.oldleft = self.rect.left
+            self.oldtop = self.rect.top
             if self.direction == 'L':
                 if self.rect.left > 0:  # 判断是否在屏幕的左边的边界上
                     self.rect.left -= self.speed
@@ -248,7 +261,7 @@ class Enemy_Tank(Tank):
 
     def random_fire(self):
         r = randint(0, 50)
-        if r == 10 or r == 20 or r == 30:
+        if r == 10:
             m = self.fire()
             TankeMain.enemy_missile_list.add(m)
 
@@ -336,6 +349,42 @@ class Explode(BaseItem):
                 self.image = self.images[self.step]
                 self.screen.blit(self.image, self.rect)
                 self.step += 1
+
+
+# 游戏中的墙
+class Wall(BaseItem):
+    def __init__(self, screen, left, top, width, height):
+        super().__init__(screen)
+        self.rect = Rect(left, top, width, height)
+        self.color = (255, 0, 0)
+
+    def display(self):
+        self.screen.fill(self.color, self.rect)
+
+    # 针对墙和其他的炮弹的碰撞检测
+    def hit_other(self):
+        if TankeMain.my_tank:
+            is_hit = pygame.sprite.collide_rect(self, TankeMain.my_tank)
+            if is_hit:
+                TankeMain.my_tank.stop = True
+                TankeMain.my_tank.stay()
+
+        if TankeMain.enemy_list:
+            hit_list = pygame.sprite.spritecollide(self, TankeMain.enemy_list, False)
+            for e in hit_list:
+                e.stop = True
+                e.stay()
+
+        if TankeMain.enemy_missile_list:
+            hit_list = pygame.sprite.spritecollide(self, TankeMain.enemy_missile_list, False)
+            for e in hit_list:
+                e.live = False
+                hit_list.remove(e)
+        if TankeMain.my_tank_missle_list:
+            hit_list = pygame.sprite.spritecollide(self, TankeMain.my_tank_missle_list, False)
+            for e in hit_list:
+                e.live = False
+                hit_list.remove(e)
 
 
 if __name__ == '__main__':
